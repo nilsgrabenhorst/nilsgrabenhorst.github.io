@@ -1,0 +1,495 @@
+:root {
+    color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Fonts */
+
+/* frank-ruhl-libre-300 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-300.woff2') format('woff2');
+}
+/* frank-ruhl-libre-regular - latin_latin-ext */
+@font-face {
+  font-display: swap;  /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-regular.woff2') format('woff2');  /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* frank-ruhl-libre-500 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-500.woff2') format('woff2');
+}
+/* frank-ruhl-libre-600 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-600.woff2') format('woff2');
+}
+/* frank-ruhl-libre-700 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-700.woff2') format('woff2');
+}
+/* frank-ruhl-libre-800 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-800.woff2') format('woff2');
+}
+/* frank-ruhl-libre-900 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: 'Frank Ruhl Libre';
+  font-style: normal;
+  font-weight: 900;
+  src: url('../fonts/frank-ruhl-libre-v21-latin_latin-ext-900.woff2') format('woff2');
+}
+
+/* Colors */
+
+* {
+    --primary: #000;
+    --primaryBackground: #fff;
+    --secondary: #555;
+    --secondaryBackground: #fafafa;
+    --tertiary: #909090;
+    --tertiaryBackground: #f1f2f0;
+    --secondaryBorder: #d0d0d0;
+    --tertiaryBorder: #e0e0e0;
+    
+    --headerBackground: #fff;
+    --headerShadow: #00000020;
+    
+    --tint: #ff7711;
+    
+    --buttonBackground: #fff;
+    --buttonLabel: var(--tertiary);
+    --buttonLabelSelected: var(--primary);
+    --buttonBorder: var(--tertiary);
+    
+    --tagLabel: #666;
+    --tagBackground: #e9e9e9;
+    --tagBackgroundHover: #f3f3f3;
+    --tagBorder: #e0e0e0;
+    --tagBorderHover: #e0e0e0;
+    
+    --syntaxBackground: var(--secondaryBackground);
+    --syntaxBorder: var(--tertiaryBorder);
+    --syntaxOther: var(--primary);
+    --syntaxKeyword: #c02264;
+    --syntaxType: #232010;
+    --syntaxCall: #246fe0;
+    --syntaxProperty: #21ab9d;
+    --syntaxNumber: #db6f57;
+    --syntaxString: #f04410;
+    --syntaxComment: #6b8a94;
+    --syntaxDotAccess: #92b300;
+    --syntaxPreprocessing: #b68a00;
+    
+    --bodyFont: 'Frank Ruhl Libre', Helvetica, Arial;
+    --h1Font: Helvetica, Arial;
+    --h2Font: Helvetica, Arial;
+/*    --h1Font: 'Frank Ruhl Libre', Helvetica, Arial;*/
+/*    --h2Font: 'Frank Ruhl Libre', Helvetica, Arial;*/
+
+/*
+    @media (prefers-color-scheme: dark) {
+        --primary: #eee;
+        --primaryBackground: #111;
+        --secondary: #c0c0c0;
+        --secondaryBackground: #151515;
+        --tertiary: #555;
+        --tertiaryBackground: #202020;
+        --secondaryBorder: #303030;
+        --tertiaryBorder: #404040;
+        
+        --headerBackground: #000;
+        --headerShadow: #000000b0;
+
+        --buttonBackground: #111;
+        --buttonLabel: var(--tertiary);
+        --buttonLabelSelected: var(--primary);
+        --buttonBorder: var(--tertiary);
+        
+        --tagLabel: #000;
+        --tagBackground: #777;
+        --tagBackgroundHover: #222;
+        --tagBorder: #aaa;
+        --tagBorderHover: #444;
+        
+        --syntaxBackground: #181818;
+        --syntaxBorder: #292929;
+        --syntaxOther: #a9bcbc;
+        --syntaxKeyword: #e73289;
+        --syntaxType: #8281ca;
+        --syntaxCall: #348fe5;
+        --syntaxProperty: #21ab9d;
+        --syntaxNumber: #db6f57;
+        --syntaxString: #fa641e;
+        --syntaxComment: #6b8a94;
+        --syntaxDotAccess: #92b300;
+        --syntaxPreprocessing: #b68a00;
+        
+        --bodyFont: Helvetica, Arial;
+    }
+ */
+}
+
+/* Styles */
+
+body {
+    background-color: var(--primaryBackground);
+    color: var(--primary);
+    font-family: Helvetica, Arial;
+    font-weight: 400;
+    text-align: center;
+    line-height: 1.6;
+    font-size: 18px;
+    -webkit-text-size-adjust: 100%;
+    orphans: 2;
+    widows: 2;
+}
+
+hr.solid {
+    border-top: 1px solid var(--tertiaryBorder);
+}
+
+.wrapper {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 40px;
+    text-align: left;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    box-sizing: content-box;
+    padding-top: 150px;
+    margin-top: -150px;
+    translate: 0px -150px;
+    background-color: var(--headerBackground);
+    border-bottom: 1px solid var(--syntaxBorder);
+    font-family: Helvetica, Arial;
+    font-weight: 400;
+    box-shadow: 0px 0px 6px 0px var(--headerShadow) ;
+    z-index: 10;
+}
+
+header .wrapper {
+    padding-top: 8px;
+    padding-bottom: 0px;
+    text-align: center;
+}
+
+header a {
+    text-decoration: none;
+}
+
+header .site-name {
+    translate: -16px 15px;
+}
+
+.hstack {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.vstack {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+header nav {
+    overflow: hidden;
+    margin-bottom: 0px;
+}
+
+header nav a {
+    padding: 6px 8px;
+    line-height: 30px;
+}
+
+nav {
+    margin-top: 20px;
+}
+
+nav ul {
+    margin-bottom: 0;
+}
+
+nav li {
+    display: inline-block;
+    margin: 2px 1px;
+}
+
+header a {
+    color: var(--buttonLabel);
+}
+
+nav li a {
+    margin: 3px -1;
+    padding: 6px 8px;
+}
+
+nav li a:last-child {
+    padding-right: 0px;
+}
+
+nav li a.selected {
+    color: var(--buttonLabelSelected);
+}
+
+
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 2em;
+    font-weight: 300;
+}
+
+.content h1 {
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 30px;
+    font-family: var(--h1Font);
+}
+.content h1:before, h1:after {
+    content: "";
+    flex: 1 1;
+    border-bottom: 1px solid var(--secondaryBorder);
+    margin: auto;
+}
+.content h1:before {
+    margin-right: 16px;
+}
+.content h1:after {
+    margin-left: 16px;
+}
+
+h2 {
+    margin: 20px 0;
+    font-family: var(--h2Font);
+    font-weight: 300;
+}
+
+p {
+    margin-bottom: 10px;
+    font-family: var(--bodyFont);
+    font-weight: 400;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--tint);
+}
+
+.description {
+    margin-bottom: 40px;
+}
+
+.item-list > li {
+    display: block;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--syntaxBorder);
+    background-color: var(--syntaxBackground);
+    margin-bottom: 20px;
+    box-shadow: 0px 0px 0px 2px var(--headerBackground);
+}
+
+.item-list > li:last-child {
+    margin-bottom: 0;
+}
+
+.item-list h1 {
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.item-list p {
+    margin-bottom: 0;
+    color: var(--secondary);
+}
+
+.date {
+    color: var(--tertiary);
+    padding-bottom: 12px;
+}
+
+.tag-list {
+    margin-bottom: 15px;
+}
+
+.tag-list li,
+.tag {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.tag-list li:last-child {
+    margin-right: 0;
+}
+
+.tag-list a,
+.tag a {
+    text-decoration: none;
+    color: var(--tagLabel);
+    background-color: var(--tagBackground);
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--tagBorder);
+    box-shadow: 0px 0px 0px 2px var(--headerBackground);
+}
+
+.item-list .tag a {
+    box-shadow: 0px 0px 0px 2px var(--secondaryBackground);
+}
+
+.tag-list a:hover,
+.tag a:hover {
+    color: var(--tint);
+    background-color: var(--tagBackgroundHover);
+    border: 1px solid var(--tagBorderHover);
+}
+
+.item-page .tag-list {
+    display: inline-block;
+}
+
+.item-list .tag-list {
+    margin-top: 16px;
+    margin-bottom: 0px;
+    transform: translate(10px, 8px);
+}
+
+.content {
+    margin-bottom: 40px;
+}
+
+.browse-all {
+    display: block;
+    margin-bottom: 30px;
+}
+
+.all-tags li {
+    font-size: 1.0em;
+    margin-right: 10px;
+    margin-bottom: 20px;
+}
+
+footer {
+    color: var(--tertiary);
+    background-color: var(--headerBackground);
+    border-top: 1px solid var(--syntaxBorder);
+    z-index: 10;
+}
+footer p {
+    font-family: Helvetica, Arial;
+    text-align: right;
+    margin-bottom: 16px;
+}
+
+@media(max-width: 600px) {
+    .wrapper {
+        padding: 40px 20px;
+    }
+}
+
+.right-aligned-container {
+    text-align: right;
+}
+
+
+
+/* Code */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: var(--syntaxBackground);
+    padding: 16px 0;
+    border-radius: 12px;
+    border: 1px solid var(--syntaxBorder);
+    box-shadow: 0px 0px 0px 2px var(--headerBackground);
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: var(--syntaxOther);
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: var(--syntaxKeyword);
+}
+
+pre code .type {
+    color: var(--syntaxType);
+}
+
+pre code .call {
+    color: var(--syntaxCall);
+}
+
+pre code .property {
+    color: var(--syntaxProperty);
+}
+
+pre code .number {
+    color: var(--syntaxNumber);
+}
+
+pre code .string {
+    color: var(--syntaxString);
+}
+
+pre code .comment {
+    color: var(--syntaxComment);
+}
+
+pre code .dotAccess {
+    color: var(--syntaxDotAccess);
+}
+
+pre code .preprocessing {
+    color: var(--syntaxPreprocessing);
+}
