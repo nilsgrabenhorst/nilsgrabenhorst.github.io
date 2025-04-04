@@ -433,6 +433,11 @@ footer p {
     text-align: right;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 
 
 /* Code */
