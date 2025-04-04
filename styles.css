@@ -111,6 +111,8 @@
     --bodyFont: 'Frank Ruhl Libre', Helvetica, Arial;
     --h1Font: Helvetica, Arial;
     --h2Font: Helvetica, Arial;
+    --h3Font: Helvetica, Arial;
+    --h4Font: Helvetica, Arial;
 /*    --h1Font: 'Frank Ruhl Libre', Helvetica, Arial;*/
 /*    --h2Font: 'Frank Ruhl Libre', Helvetica, Arial;*/
 
@@ -302,6 +304,18 @@ h2 {
     font-weight: 300;
 }
 
+h3 {
+    margin: 20px 0;
+    font-family: var(--h3Font);
+    font-weight: 300;
+}
+
+h4 {
+    margin: 20px 0;
+    font-family: var(--h4Font);
+    font-weight: 300;
+}
+
 p {
     margin-bottom: 10px;
     font-family: var(--bodyFont);
@@ -436,6 +450,25 @@ footer p {
 img {
   max-width: 100%;
   height: auto;
+}
+
+blockquote {
+/*  background: #f9f9f9;*/
+  border-left: 10px solid var(--tint);
+  margin: 1.5em 10px;
+  padding: 0.5em 10px;
+/*  quotes: "\201C""\201D""\2018""\2019";*/
+}
+blockquote:before {
+  color: #ccc;
+  content: ”\201C”;
+  font-size: 4em;
+  line-height: 0.1em;
+  margin-right: 0.25em;
+  vertical-align: -0.4em;
+}
+blockquote p {
+  display: inline;
 }
 
 
