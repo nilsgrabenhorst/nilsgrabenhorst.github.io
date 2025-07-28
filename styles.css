@@ -322,6 +322,12 @@ p {
     font-weight: 400;
 }
 
+p code {
+    font-family: monospace;
+    color: var(--secondary);
+    font-size: 0.87em;
+}
+
 a {
     color: inherit;
     text-decoration: none;
@@ -490,7 +496,7 @@ pre code {
     padding: 0 20px;
     color: var(--syntaxOther);
     line-height: 1.4em;
-    font-size: 0.95em;
+    font-size: 0.87em;
     overflow-x: auto;
     white-space: pre;
     -webkit-overflow-scrolling: touch;
