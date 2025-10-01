@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="saiboi"/><link rel="canonical" href="https://saiboi.com/blog/NonCopyable"/><meta name="twitter:url" content="https://saiboi.com/blog/NonCopyable"/><meta property="og:url" content="https://saiboi.com/blog/NonCopyable"/><title>Noncopyable Types | saiboi</title><meta name="twitter:title" content="Noncopyable Types | saiboi"/><meta property="og:title" content="Noncopyable Types | saiboi"/><meta name="description" content="Non-Copyable types for safety and profit."/><meta name="twitter:description" content="Non-Copyable types for safety and profit."/><meta property="og:description" content="Non-Copyable types for safety and profit."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to saiboi"/></head><body class="item-page"><header><div class="wrapper"><div class="hstack"><a href="/" class="site-name"><img src="/saiboi_logo_s.png" alt="saiboi home"/></a><nav><ul><li><a href="/services" class="unselected">Services</a></li><li><a href="/blog" class="selected">Blog</a></li><li><a href="/about" class="unselected">About</a></li></ul></nav></div></div></header><div class="wrapper"><article><div class="content"><h1>Noncopyable Types</h1><h3>The Copyable Protocol</h3><p>Swift 5.9 introduced the <code>Copyable</code> protocol for types that can be copied. Every type is <code>Copyable</code> by default, so we do not need to explicitly adopt this protocol. Of course types could alredy be copied in earlier versions of Swift, long before <code>Copyable</code> was introduced. In fact, Swift creates copies all the time. After all, this is the first thing we all learned about value types, right?</p><pre><code><span class="keyword">struct</span> Food {
+    <span class="keyword">var</span> value: <span class="type">String</span>
+}
+
+<span class="keyword">let</span> food = <span class="type">Food</span>(value: <span class="string">"🍏"</span>)
+
+<span class="comment">// assigning it again implicitly creates a copy of a value type</span>
+<span class="keyword">var</span> copiedFood = food
+
+<span class="comment">// updates of the copy don't affect the original:</span>
+copiedFood.<span class="property">value</span> = <span class="string">"🍊"</span>
+
+<span class="comment">// prints "original: 🍏, copied: 🍊"</span>
+<span class="call">print</span>(<span class="string">"original:</span> \(food.<span class="property">value</span>)<span class="string">, copied:</span> \(copiedFood.<span class="property">value</span>)<span class="string">"</span>)
+</code></pre><p>That's exactly the behavior of <code>Copyable</code>. And since everyting conforms by default, code still behaves the same. What's new? We can opt out.</p><h3>Noncopyable Types</h3><p>To remove the implicit <code>Copyable</code> conformance from a type, we add <code>~Copyable</code> to the list of conformances. Usually we pronounce the tilde as "non-", as in "noncopyable". After opting out we get guaranteed unique ownership of the value. It cannot be copied anymore.</p><pre><code><span class="keyword">struct</span> Credential: ~<span class="type">Copyable</span> {
+    <span class="keyword">var</span> password: <span class="type">String</span>
+}
+
+<span class="comment">// We cannot re-assign a global noncopyable value.
+// A copy cannot be created. And the compiler cannot guarantee that nobody uses the
+// original global `credential` property after it was assigned to `theSameCredential`:</span>
+<span class="keyword">let</span> credential = <span class="type">Credential</span>(password: <span class="string">"secret"</span>)
+<span class="keyword">let</span> theSameCredential = credential <span class="comment">// ❌ Cannot consume noncopyable stored property 'credential' that is global
+
+// we can re-assign local noncopyable values...</span>
+<span class="keyword">func</span> test() {
+    <span class="keyword">let</span> credential = <span class="type">Credential</span>(password: <span class="string">"secret"</span>)
+    <span class="call">print</span>(credential.<span class="property">password</span>) <span class="comment">// ✅ OK here</span>
+    
+    <span class="keyword">let</span> credentialCopy = credential <span class="comment">// The original `credential` is "consumed" here. We are not allowed to use it afterwards.</span>
+    <span class="call">print</span>(credential.<span class="property">password</span>) <span class="comment">// ❌ 'credential' used after consume</span>
+}
+</code></pre><h3>Using Noncopyable Types</h3><p>When calling a function, its arguments are automatically copied. Obviously that won't work for <code>~Copyable</code> parameters. We need to tell the compiler what should happen to a noncopyable argument. Such an argument guarantees unique ownership, so we need to decide whether the function should <em>borrow</em> ownership while it is running, or whether it should take ownership away from the caller by <em>consuming</em> the value.</p><pre><code><span class="keyword">func</span> inspect(<span class="keyword">_</span> credential: borrowing <span class="type">Credential</span>) {
+    <span class="call">print</span>(<span class="string">"The password is:"</span>, credential.<span class="property">password</span>)
+}
+
+<span class="keyword">func</span> logIn(<span class="keyword">_</span> credential: consuming <span class="type">Credential</span>) {
+    <span class="call">print</span>(<span class="string">"Logged in with password:</span> \(credential.<span class="property">password</span>)<span class="string">"</span>)
+}
+
+<span class="keyword">func</span> test() {
+    <span class="keyword">let</span> credential = <span class="type">Credential</span>(password: <span class="string">"secret"</span>)
+    
+    <span class="comment">// `inspect()` borrows `credential`.
+    // `test()` maintains ownership when `inspect()` returns, so `credential can be used again.</span>
+    <span class="call">inspect</span>(credential)
+    
+    <span class="comment">// `logIn()` takes ownership by consuming `credential`.
+    // The `credential` in `test()` cannot be used anymore.</span>
+    <span class="call">logIn</span>(credential)
+    
+    <span class="call">inspect</span>(credential) <span class="comment">// ❌ 'credential' used after consume</span>
+}
+</code></pre><p>We cannot mutate a borrowed value, it's read-only. Do you remember <code>inout</code> parameters? For <code>Copyable</code> types, the value is copied into a local mutable property. It will be written back to the original place when the function returns. We can use <code>inout</code> parameters wit noncopyable types too! Of course, the value is not copied and written back. Instead, any mutations are applied directly to the original location of the value's data. <code>inout</code> parameters essentially behave like mutatable <code>borrowing</code> parameters.</p><pre><code><span class="keyword">func</span> update(<span class="keyword">_</span> credential: <span class="keyword">inout</span> <span class="type">Credential</span>, newPassword: <span class="type">String</span>) {
+    credential.<span class="property">password</span> = newPassword
+}
+
+<span class="keyword">func</span> test2() {
+    <span class="keyword">var</span> credential = <span class="type">Credential</span>(password: <span class="string">"secret"</span>)
+    <span class="call">update</span>(&amp;credential, newPassword: <span class="string">"12345"</span>)
+    
+    <span class="comment">// we still have ownership of `credentials`, so we can use it:</span>
+    <span class="call">print</span>(<span class="string">"Updated passsword:"</span>, credential.<span class="property">password</span>) <span class="comment">// prints "Updated passsword: 12345"</span>
+}
+</code></pre><h2>Motivation</h2><p>Copyable types are much simpler to use. We need to add ownership annotations for noncopyable types. And noncopyable types can spread virally if we don't use them carefully, because any value type with noncopyable properties needs to be noncopyable as well. This makes sense — how would you create a copy of something if you are not allowed to copy some of its parts?</p><p>Copying takes some small amount of processing time. And they consume some memory. This does not matter much in most circumstances because copying is quite efficient. Many larger value types use the Copy-on-Write strategy as an optimization to avoid creating unnecessary copies<sup id=fnr1-2025-09-28><a href="#fn1-2025-09-28">1</a></sup>.</p><p><code>~Copyable</code> is a tool for <strong>performance-critical code</strong>. Code where a tight loop is too slow due to excessive copying. Or code that runs in a constrained environment, for example <a href="https://www.swift.org/get-started/embedded/">embedded systems</a>.</p><p>We can also use <code>~Copyable</code> to make sure our code is <strong>correct</strong> and <strong>safe</strong>. Creating accidental copies may be very dangerous for some values. Can you think of any examples?</p><ul><li><strong>Credentials</strong>: In a login flow we want to make sure the user-entered password does not leak out somehow. We can wrap the string in a non-copyable <code>Credential</code> type. The method for logging in <em>consumes</em> this value. Since swift guarantees unique ownership, we can be confident that this value does not accidentally leak out between creation and consumption. For example, the credential cannot be logged or printed anymore.</li></ul><ul><li><strong>Transactions</strong> in a banking app: Withdrawals and deposits can be modeled as a <code>Transaction</code> to be applied to an account. A customer would be very upset if a withdrawal transaction would be applied twice because the value was accidentally copied somewhere. A noncopyable <code>Transaction</code> prevents this class of bugs at compile time.</li></ul><ul><li><strong>File handles</strong>: A noncopyable file handle ensures unique ownership. This prevents bugs like accidentally closing a file multiple times. We can close the file handle in the type's <code>deinit</code>, which is guaranteed to run only once.</li></ul><p>Let's explore a small credentials example:</p><pre><code><span class="keyword">struct</span> Credential: ~<span class="type">Copyable</span> {
+    <span class="keyword">let</span> user: <span class="type">String</span>
+    
+    <span class="comment">// The password should be private.
+    // The only way to read it is via a consuming method.</span>
+    <span class="keyword">private let</span> password: <span class="type">String</span>
+    
+    <span class="keyword">init</span>(user: <span class="type">String</span>, password: <span class="type">String</span>) {
+        <span class="keyword">self</span>.<span class="property">user</span> = user
+        <span class="keyword">self</span>.<span class="property">password</span> = password
+    }
+    
+    consuming <span class="keyword">func</span> getPassword() -&gt; <span class="type">String</span> {
+        <span class="keyword">return</span> password
+    }
+}
+
+<span class="keyword">enum</span> Account {
+    <span class="keyword">case</span> loggedOut
+    <span class="keyword">case</span> loggedIn(user: <span class="type">String</span>)
+    
+    <span class="keyword">init</span>() {
+        <span class="keyword">self</span> = .<span class="dotAccess">loggedOut</span>
+    }
+    
+    <span class="keyword">mutating func</span> logIn(<span class="keyword">_</span> credential: consuming <span class="type">Credential</span>) <span class="keyword">throws</span> {
+        <span class="keyword">let</span> user = credential.<span class="property">user</span>
+        <span class="keyword">let</span> password = credential.<span class="call">getPassword</span>() <span class="comment">// credential is consumed here.
+        
+        // if password is wrong, throw an error
+        // else</span>
+        <span class="keyword">self</span> = .<span class="call">loggedIn</span>(user: user)
+    }
+}
+
+<span class="keyword">func</span> test() {
+    <span class="keyword">var</span> account = <span class="type">Account</span>()
+    <span class="keyword">let</span> credential = <span class="type">Credential</span>(user: <span class="string">"möpelkötter"</span>, password: <span class="string">"secret"</span>)
+    
+    <span class="comment">// we cannot accidentally leak the password in the chain between
+    // creating the credential and consuming it when logging in.
+    // If we try, we get a compiler error:</span>
+    <span class="call">print</span>(credential.<span class="call">getPassword</span>()) <span class="comment">// ❌ 'credential' consumed more than once</span>
+    
+    <span class="keyword">try</span>? account.<span class="call">logIn</span>(credential)
+    <span class="call">print</span>(account)
+}
+</code></pre><h2>Protocols, Generics, Deinit, Discard</h2><p>We can use noncopyable types as generic arguments since Swift 6<sup id=fnr2-2025-09-28><a href="#fn2-2025-09-28">2</a></sup>. We can also add protocol conformances to noncopyable types. However, protocols implicitly require <code>Copyable</code> conformance by default: <code>protocol P {}</code> is shorthand for <code>protocol P: Copyable {}</code>. We cannot add conformance to <code>P</code> to a noncopyable type unless we remove <code>Copyable</code> from the protocol using <code>~Copyable</code>:</p><pre><code><span class="keyword">protocol</span> P: ~<span class="type">Copyable</span> {}
+</code></pre><p>Careful though! This does not mean that all types conforming to <code>P</code> must be noncopyable, or that those types automatically become noncopyable. It just removes the <code>Copyable</code> requirement from the protocol, so that <code>P</code> conformance can be added to both <code>Copyable</code> and noncopyable types:</p><pre><code><span class="keyword">protocol</span> A {}
+<span class="keyword">protocol</span> B: ~<span class="type">Copyable</span> {}
+
+<span class="comment">// `B` does not require `Copyable` conformance, but this type is still `Copyable:</span>
+<span class="keyword">struct</span> C: <span class="type">B</span> {}
+
+<span class="comment">// This type cannot be copied, and `B` does not care:</span>
+<span class="keyword">struct</span> NC: <span class="type">B</span>, ~<span class="type">Copyable</span> {}
+
+<span class="comment">// Noncopyable types cannot conform to protocols that require `Copyable`:</span>
+<span class="keyword">extension</span> <span class="type">NC</span>: <span class="type">A</span> {} <span class="comment">// ❌ Type 'NC' does not conform to protocol 'Copyable'</span>
+</code></pre><p>Let's explore a more concrete example. We start with an <code>Account</code> actor that keeps track of the account's balance:</p><pre><code><span class="keyword">actor</span> Account {
+    <span class="keyword">private(set) var</span> balance: <span class="type">Int</span> = <span class="number">0</span>
+}
+</code></pre><p>We want to be able to add or remove funds. We model this as applying a <code>Transaction</code>. It's a good idea to to make transactions noncopyable. This prevents bugs caused by accidentally applying a transaction twice.</p><p>For some reason<sup id=fnr3-2025-09-28><a href="#fn3-2025-09-28">3</a></sup> we decide to write two different transaction types, <code>Deposit</code> and <code>Withdrawal</code>. Both conform to a <code>Transaction</code> protocol:</p><pre><code><span class="comment">// Transactions are allowed to be noncopyable</span>
+<span class="keyword">protocol</span> Transaction: ~<span class="type">Copyable</span> {
+    
+    <span class="comment">// an implementation may be, but is not required to be `consuming`.</span>
+    consuming <span class="keyword">func</span> use() -&gt; <span class="type">Int</span>
+}
+
+<span class="keyword">struct</span> Deposit {
+    <span class="keyword">private let</span> amount: <span class="type">UInt</span>
+    
+    <span class="keyword">init</span>(amount: <span class="type">UInt</span>) {
+        <span class="keyword">self</span>.<span class="property">amount</span> = amount
+    }
+}
+
+<span class="keyword">struct</span> Withdrawal: ~<span class="type">Copyable</span> {
+    <span class="keyword">private let</span> amount: <span class="type">UInt</span>
+    
+    <span class="keyword">init</span>(amount: <span class="type">UInt</span>) {
+        <span class="keyword">self</span>.<span class="property">amount</span> = amount
+    }
+    
+    <span class="comment">// noncopyable structs may have a deinitializer.
+    // We can use it to log a message.</span>
+    <span class="keyword">deinit</span> {
+        <span class="call">print</span>(<span class="string">"Withdrawal deinitialized before used."</span>)
+    }
+}
+</code></pre><p>⚠️ Did you notice that <code>Deposit</code> is <code>Copyable</code>? Uh-oh!!! 🚨</p><p>Time to add <code>Transaction</code> conformances:</p><pre><code><span class="comment">// 💪 Yes, we can!
+// (conform to `Transaction`, even though `Deposit` is `Copyable`)</span>
+<span class="keyword">extension</span> <span class="type">Deposit</span>: <span class="type">Transaction</span> {
+    <span class="keyword">func</span> use() -&gt; <span class="type">Int</span> {
+        <span class="keyword">return</span> <span class="type">Int</span>(amount)
+    }
+}
+
+<span class="keyword">extension</span> <span class="type">Withdrawal</span>: <span class="type">Transaction</span> {
+    <span class="comment">// The protocol allows us to make this method `consuming`.
+    // We don't have to, but we want this behavior to prevent
+    // using a transaction twice.</span>
+    consuming <span class="keyword">func</span> use() -&gt; <span class="type">Int</span> {
+        <span class="keyword">let</span> value = -<span class="type">Int</span>(amount)
+        
+        <span class="comment">// We log a message when this transaction is used:</span>
+        <span class="call">print</span>(<span class="string">"Withdrawal used."</span>)
+        
+        <span class="comment">// ...but we don't want to log the default message in `deinit`.
+        // `discard` prevents `deinit` from running:</span>
+        discard <span class="keyword">self
+        
+        return</span> value
+    }
+}
+</code></pre><p>Great! Now we can add a generic method that applies some <code>Transaction</code> to an account:</p><pre><code><span class="keyword">extension</span> <span class="type">Account</span> {
+    <span class="keyword">func</span> apply(<span class="keyword">_</span> transaction: consuming <span class="keyword">some</span> <span class="type">Transaction</span> &amp; ~<span class="type">Copyable</span>) {
+        <span class="keyword">let</span> value = transaction.<span class="call">use</span>()
+        balance += value
+    }
+}
+</code></pre><p>A more traditional way to spell the generic argument is <code>func apply&lt;T: Transaction &amp; ~Copyable&gt;(_ transaction: consuming T) {...}</code>. In both cases the meaning is the same: The argument has to be a <code>Transaction</code>, but it does not need to be <code>Copyable</code>. By default, all generic arguments require <code>Copyable</code> conformance; we use <code>~Copyable</code> to remove this implicit requirement. In practice, we can now call this method with both copyable and noncopyable transactions.</p><p>Let's try it out:</p><pre><code><span class="type">Task</span> {
+    <span class="keyword">let</span> account = <span class="type">Account</span>()
+    
+    <span class="keyword">let</span> deposit = <span class="type">Deposit</span>(amount: <span class="number">100</span>)
+    <span class="keyword">await</span> account.<span class="call">apply</span>(deposit)
+    
+    <span class="keyword">let</span> withdrawal = <span class="type">Withdrawal</span>(amount: <span class="number">50</span>)
+    <span class="keyword">await</span> account.<span class="call">apply</span>(withdrawal) <span class="comment">// prints: "Withdrawal used."
+    
+    // ⚠️ Bug: We apply the same transaction twice!!! 🙀</span>
+    <span class="keyword">await</span> account.<span class="call">apply</span>(deposit)
+    
+    <span class="keyword">await</span> <span class="call">print</span>(<span class="string">"Current balance:"</span>, account.<span class="property">balance</span>) <span class="comment">// prints: "Current balance: 150" — That's too much by 100.
+    
+    // Withdrawals are noncopyable, so we cannot apply it twice:</span>
+    <span class="keyword">await</span> account.<span class="call">apply</span>(withdrawal) <span class="comment">// ❌ 'withdrawal' consumed more than once</span>
+    
+    <span class="keyword">let</span> anotherWithdrawal = <span class="type">Withdrawal</span>(amount: <span class="number">42</span>)
+    
+    <span class="comment">// anotherWithdrawal will be cleaned up at the end of the scope if not
+    // consumed otherwise. We would see the message from its `deinit`
+    // after "End of demo". Sometimes we want tighter control. We can explicitly
+    // `consume` a value. Its memory is freed immediately and the compiler
+    // prevents usage afterwards:</span>
+    consume anotherWithdrawal <span class="comment">// prints: "Withdrawal deinitialized before used."</span>
+    
+    <span class="call">print</span>(<span class="string">"End of demo"</span>)
+}
+</code></pre><h2>Conclusion</h2><p><code>~Copyable</code> is an exciting tool in our belt, for fine-grained ownership control, improved efficiency, and to make sure our code is correct. However, we have to be careful: when using <code>~Copyable</code> with protocols and generics, it does not prescribe noncopyability. Instead, it just opts the protocol or generic out of the requirement to be <code>Copyable</code>.</p><p>Have you used noncopyable types, or do you have new ideas how to use them? I'd love to hear from you <a href="https://mastodon.social/@saiboi">on Mastodon</a>!</p><div class="footnotes">
+<hr>
+<ol>
+
+<li id="fn1-2025-09-28"><p>
+Examples for CoW (Copy-on-Write) types are Collections (`Array`, `Dictionary`, `Set`), `String`, and `Data`. The struct itself is still copied, but the potentially very large amount of data is stored outside of the struct in a reference-counted buffer. For each copy of the struct, the buffer is not copied. Instead, its refernece count is incremened. This way we end up with multiple copies of the struct, each one pointing to the same buffer. This is safe and keeps value semantics as long as nobody writes to the buffer. Writing is only safe, if there is only one reference to the buffer. CoW types check if the buffer is uniquely referenced before writing — if not, the buffer is copied. We can create custom CoW types using <a href="https://developer.apple.com/documentation/swift/isknownuniquelyreferenced(_:)-98zpp" target="_blank">isKnownUniquelyReferenced(_:)</a>.
+<a href="#fnr1-2025-09-28" class="footnoteBackLink" title="Jump back to footnote 1 in the text.">↩︎︎</a>
+</p></li>
+
+<li id="fn2-2025-09-28"><p>
+See <a href="https://github.com/swiftlang/swift-evolution/blob/main/proposals/0427-noncopyable-generics.md" target="_blank">proposal on Swift Evolution</a>
+<a href="#fnr2-2025-09-28" class="footnoteBackLink" title="Jump back to footnote 2 in the text.">↩︎︎</a>
+</p></li>
+
+<li id="fn3-2025-09-28"><p>
+Of course the reason is to demo protocols and generics for noncopyable types! 🤓
+<a href="#fnr3-2025-09-28" class="footnoteBackLink" title="Jump back to footnote 3 in the text.">↩︎︎</a>
+</p></li>
+
+</ol>
+</div></div><span>Tags: </span><ul class="tag-list"><li><a href="/tags/swift">swift</a></li></ul></article></div><footer><div class="wrapper"><p><a href="/feed.rss">RSS</a> • <a href="https://mastodon.social/@saiboi" rel="nofollow" target="_blank">Mastodon</a></p><div class="hstack"><p>This site was built with <a href="https://github.com/johnsundell/publish" rel="nofollow" target="_blank">Publish</a>.</p><p><a href="/imprint">Imprint</a></p></div></div></footer></body></html>
